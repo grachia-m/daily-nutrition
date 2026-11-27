@@ -1,5 +1,5 @@
-import {t,html,getLanguage} from './i18n.js?v=262f6ed0d902';
-import {parseModelSteps} from './custom-recipes.js?v=262f6ed0d902';
+import {t,html,getLanguage} from './i18n.js?v=275e6c727d94';
+import {parseModelSteps} from './custom-recipes.js?v=275e6c727d94';
 let generatorPromise;
 export async function draftRecipeWithAI({title,ingredients,onProgress=()=>{}}){
  if(!navigator.gpu)throw Error(t('Локальной модели нужен браузер с WebGPU. Добавь шаги вручную или открой поддерживаемый браузер.'));

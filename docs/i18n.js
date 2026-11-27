@@ -1,4 +1,4 @@
-import {translations} from './translations.js?v=262f6ed0d902';
+import {translations} from './translations.js?v=275e6c727d94';
 export const supportedLanguages=['ru','en','es'];
 export const languageKey='ration-language';
 let language='ru';

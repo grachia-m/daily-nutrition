@@ -1,6 +1,6 @@
-import {t,html,languageSelect,syncLanguageControls} from './i18n.js?v=262f6ed0d902';
-import {openCloud,authErrorMessage,userCacheKey,createSyncQueue} from './cloud.js?v=262f6ed0d902';
-import {defaultState,migrateState} from './engine.js?v=262f6ed0d902';
+import {t,html,languageSelect,syncLanguageControls} from './i18n.js?v=275e6c727d94';
+import {openCloud,authErrorMessage,userCacheKey,createSyncQueue} from './cloud.js?v=275e6c727d94';
+import {defaultState,migrateState} from './engine.js?v=275e6c727d94';
 const authEscape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function startAccountController({getState,applyState,onStatus,onUser,notify,legacyKey,cloudFactory=openCloud}){
  let cloud,user=null,queue=null,ready=false,mode='login',loadingUser=null,epoch=0;
