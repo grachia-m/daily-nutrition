@@ -2,7 +2,7 @@
 create table public.account_settings (
  user_id uuid primary key references auth.users(id) on delete cascade,
  display_name text not null default '' check (length(display_name)<=80),
- language text not null default 'ru', timezone text not null default 'Europe/Madrid',
+ language text not null default 'ru' check (language in ('ru','en','es')), timezone text not null default 'Europe/Madrid',
  active_member_id text, snapshot jsonb,
  revision bigint not null default 0 check (revision>=0),
  created_at timestamptz not null default now(), updated_at timestamptz not null default now(),
@@ -77,6 +77,7 @@ declare
 begin
  if v_user is null then raise exception 'Authentication required' using errcode='28000'; end if;
  if p_state is null or jsonb_typeof(p_state)<>'object' or p_state->>'version'<>'4' or jsonb_typeof(p_state->'profiles')<>'array' or jsonb_array_length(p_state->'profiles') not between 1 and 8 or octet_length(p_state::text)>2000000 then raise exception 'Invalid nutrition state'; end if;
+ if p_state ? 'language' and (jsonb_typeof(p_state->'language')<>'string' or p_state->>'language' not in ('ru','en','es')) then raise exception 'Invalid language'; end if;
  if p_display_name is not null and length(p_display_name)>80 then raise exception 'Display name too long'; end if;
  insert into public.account_settings(user_id) values(v_user) on conflict(user_id) do nothing;
  select revision into v_revision from public.account_settings where user_id=v_user for update;
@@ -122,7 +123,7 @@ begin
  for v_recipe in select value from jsonb_array_elements(coalesce(p_state->'customRecipes','[]')) loop
   insert into public.custom_recipes values(v_user,v_recipe->>'id',v_recipe->>'title',(v_recipe->>'slot')::smallint,(v_recipe->>'time')::smallint,v_recipe->'ingredients',v_recipe->'steps',v_recipe);
  end loop;
- update public.account_settings set snapshot=p_state,revision=v_revision+1,active_member_id=p_state->>'activeProfileId',display_name=coalesce(p_display_name,display_name),updated_at=now() where user_id=v_user;
+ update public.account_settings set snapshot=p_state,language=coalesce(p_state->>'language',language),revision=v_revision+1,active_member_id=p_state->>'activeProfileId',display_name=coalesce(p_display_name,display_name),updated_at=now() where user_id=v_user;
  return v_revision+1;
 end $$;
 revoke all on function public.save_nutrition_state(jsonb,bigint,text) from public,anon;

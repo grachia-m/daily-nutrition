@@ -1,3 +1,4 @@
+import {translateText,normalizeSearch} from './i18n.js';
 import {foods,recipes,spanishFoods,mealPhotos} from './data.js';
 export const foodsFor=state=>({...foods,...Object.fromEntries(Object.entries(state?.customFoods||{}).map(([id,v])=>[id,v.food]))});
 export const spanishFor=(state,id)=>state?.customFoods?.[id]?.spanish||spanishFoods[id]||'';
@@ -16,12 +17,12 @@ export function validateCustomCatalog(state){
  return true;
 }
 export function matchIngredient(text,state){
- const norm=s=>s.toLocaleLowerCase('ru').replaceAll('ё','е').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
- const q=norm(text),catalog=foodsFor(state),exact=Object.entries(catalog).filter(([id,f])=>norm(f[0])===q||norm(spanishFor(state,id))===q||id===q);
+ const norm=s=>normalizeSearch(s).replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+ const q=norm(text),catalog=foodsFor(state),exact=Object.entries(catalog).filter(([id,f])=>[f[0],spanishFor(state,id),...['en','es'].map(lang=>translateText(f[0],lang))].some(name=>norm(name)===q)||id===q);
  if(exact.length===1)return exact[0][0];
- const aliases={'курица':'chicken','куриное филе':'chicken','куриная грудка':'chicken','индейка':'turkey','рис':'rice','овсянка':'oats','овсяные хлопья':'oats','молоко':'milk','яйцо':'egg','яйца':'egg','белок':'eggwhite','жидкий белок':'eggwhite','йогурт':'yogurt','творог':'cottage','cottage':'cottage','сыр':'cheese','протеин':'whey','ягоды':'berries','масло оливковое':'oil'};
+ const aliases={'chicken':'chicken','chicken breast':'chicken','turkey':'turkey','rice':'rice','arroz':'rice','oats':'oats','avena':'oats','milk':'milk','leche':'milk','eggs':'egg','huevos':'egg','egg white':'eggwhite','claras':'eggwhite','yogurt':'yogurt','yogur':'yogurt','cheese':'cheese','queso':'cheese','berries':'berries','tomatoes':'tomato','tomates':'tomato','olive oil':'oil','aceite de oliva':'oil','курица':'chicken','куриное филе':'chicken','куриная грудка':'chicken','индейка':'turkey','рис':'rice','овсянка':'oats','овсяные хлопья':'oats','молоко':'milk','яйцо':'egg','яйца':'egg','белок':'eggwhite','жидкий белок':'eggwhite','йогурт':'yogurt','творог':'cottage','cottage':'cottage','сыр':'cheese','протеин':'whey','ягоды':'berries','масло оливковое':'oil'};
  if(Object.hasOwn(aliases,q))return aliases[q];
- const matches=Object.entries(catalog).filter(([id,f])=>norm(f[0]).includes(q)||norm(spanishFor(state,id)).includes(q));return matches.length===1?matches[0][0]:null;
+ const matches=Object.entries(catalog).filter(([id,f])=>[f[0],spanishFor(state,id),...['en','es'].map(lang=>translateText(f[0],lang))].some(name=>norm(name).includes(q)));return matches.length===1?matches[0][0]:null;
 }
 export function parseIngredientText(text,state){
  const rows=[],unresolved=[];

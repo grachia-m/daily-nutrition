@@ -1,3 +1,4 @@
+import {translateText,normalizeSearch,recipeSearchText,supportedLanguages} from './i18n.js';
 import {foods,recipes,weekPattern,spanishFoods,portionGroups} from './data.js';
 import {foodsFor,spanishFor,recipesFor,validateCustomCatalog} from './custom-recipes.js';
 export const localDate = (d=new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -35,8 +36,8 @@ export function planDay(key,state,person=activeProfile(state)){
 }
 export function searchReplacements(state,key,slot,query=''){
  if(!Number.isInteger(slot)||slot<0||slot>3)return [];
- const q=query.toLocaleLowerCase('ru').replaceAll('ё','е').trim();
- return recipesFor(state).filter(r=>r.slot===slot&&[r.title,r.subtitle,...Object.keys(r.ingredients).flatMap(id=>[foodsFor(state)[id][0],spanishFor(state,id)])].join(' ').toLocaleLowerCase('ru').replaceAll('ё','е').includes(q)).map(r=>portionForRecipe(r.id,key,state));
+ const q=normalizeSearch(query);
+ return recipesFor(state).filter(r=>r.slot===slot&&normalizeSearch([recipeSearchText(r,state),...Object.keys(r.ingredients).flatMap(id=>[foodsFor(state)[id][0],spanishFor(state,id),...['en','es'].map(lang=>translateText(foodsFor(state)[id][0],lang))])].join(' ')).includes(q)).map(r=>portionForRecipe(r.id,key,state));
 }
 export function setMeal(state,key,slot,id){
  const recipe=recipesFor(state).find(r=>r.id===id);if(!recipe||recipe.slot!==slot)throw Error('Choose a recipe for the same meal type');
@@ -112,6 +113,7 @@ export function migrateState(raw){
  validateState(s);return s;
 }
 export function validateState(s){
+ if(s.language!==undefined&&!supportedLanguages.includes(s.language))throw Error('Invalid language');
  const obj=o=>o!==null&&typeof o==='object'&&!Array.isArray(o),finite=(n,min,max)=>Number.isFinite(n)&&n>=min&&n<=max,keyOk=k=>/^\d{4}-\d{2}-\d{2}$/.test(k)&&localDate(parseDate(k))===k;
  if(!s||s.version!==4||!Array.isArray(s.archivedProfiles)||!Array.isArray(s.profiles)||s.profiles.length<1||s.profiles.length>8||!s.profiles.some(p=>p.id===s.activeProfileId)||typeof s.profileNote!=='string'||s.profileNote.length>20000||!obj(s.overrides)||!obj(s.bought))throw Error('Invalid state');
  validateCustomCatalog(s);

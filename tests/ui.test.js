@@ -4,13 +4,14 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {randomUUID} from 'node:crypto';
-function app(initial=null){
+function app(initial=null,language='ru'){
  const nodes=new Map(),events={},selections=new Map();
  const node=selector=>{if(!nodes.has(selector))nodes.set(selector,{id:selector.replace('#',''),innerHTML:'',outerHTML:'',value:'',checked:false,open:false,listeners:{},classList:{toggle(){},add(){}},addEventListener(type,handler){this.listeners[type]=handler},focus(){},replaceWith(){},closest(){return this},showModal(){this.open=true},close(){this.open=false}});return nodes.get(selector)};
  const storage=new Map(initial?[['teply-ration-v1',JSON.stringify(initial)]]:[]);
- const sandbox={structuredClone,crypto:{randomUUID},console,Date,URL,Blob,HTMLImageElement:class {},navigator:{},location:{hash:''},window:{addEventListener(){},scrollTo(){}},setTimeout:()=>0,clearTimeout(){},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},sessionStorage:{setItem(){}},document:{querySelector:node,getElementById:id=>node('#'+id),querySelectorAll:selector=>selections.get(selector)||[],addEventListener(type,fn){(events[type]||=[]).push(fn)},createElement:()=>({innerHTML:'',content:{firstElementChild:node('template')}})}};
- const source=['data','custom-recipes','engine','config','cloud','session','recipe-ai','app'].map(n=>readFileSync(new URL(`../dist/${n}.js`,import.meta.url),'utf8').replace(/^import .*?;\n/gm,'').replace(/^export /gm,'')).join('\n');
- runInNewContext(source+`\nglobalThis.testApi={state:()=>state,person,renderDay,renderPlan,renderRecipes,renderBasket,renderSettings,openRecipe,basketText,navigate,day:()=>date,render,calculator,profileBar,openReplacement,openRecipeEditor};`,sandbox);
+ storage.set('ration-language',language);
+ const sandbox={CustomEvent:class{constructor(type,options){this.type=type;this.detail=options.detail}},structuredClone,crypto:{randomUUID},console,Date,URL,Blob,HTMLImageElement:class {},navigator:{},location:{hash:''},window:{addEventListener(){},scrollTo(){}},setTimeout:()=>0,clearTimeout(){},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},sessionStorage:{setItem(){}},document:{documentElement:{lang:'ru'},querySelector:node,getElementById:id=>node('#'+id),querySelectorAll:selector=>selections.get(selector)||[],dispatchEvent(event){for(const fn of events[event.type]||[])fn(event)},addEventListener(type,fn){(events[type]||=[]).push(fn)},createElement:()=>({innerHTML:'',content:{firstElementChild:node('template')}})}};
+ const source=['translations','i18n','data','custom-recipes','engine','config','cloud','session','recipe-ai','app'].map(n=>readFileSync(new URL(`../dist/${n}.js`,import.meta.url),'utf8').replace(/^import .*?;\n/gm,'').replace(/^export /gm,'')).join('\n');
+ runInNewContext(source+`\nglobalThis.testApi={state:()=>state,person,renderDay,renderPlan,renderRecipes,renderBasket,renderSettings,openRecipe,basketText,navigate,day:()=>date,render,calculator,profileBar,openReplacement,openRecipeEditor,setLanguage,getLanguage,accountPanel,setAccount:(user,controller)=>{accountUser=user;accountController=controller;}};`,sandbox);
  const dispatch=async(type,target)=>{target.dataset??={};target.hasAttribute??=(attr)=>Object.hasOwn(target.dataset,attr.replace(/^data-/,'').replace(/-([a-z])/g,(_,c)=>c.toUpperCase()));target.closest??=()=>target;for(const handler of events[type]||[])await handler({target,preventDefault(){}})};
  return {api:sandbox.testApi,nodes,node,dispatch,storage,selections};
 }
@@ -75,4 +76,27 @@ test('whole egg input converts egg count to grams and omlet explains total white
 test('custom titles, product names and preparation instructions render as text',()=>{
  const a=app();a.api.state().customRecipes.push({id:'recipe-12345678',title:'<img src=x onerror=alert(1)>',slot:0,time:10,subtitle:'<script>x</script>',image:'oats',ingredients:{oats:50},steps:['<svg onload=alert(1)>'],custom:true});
  assert.ok(!a.api.renderRecipes().includes('<img src=x'));a.api.openRecipe('recipe-12345678',a.api.day());const html=a.node('#recipeDialog').innerHTML;assert.ok(html.includes('&lt;img'));assert.ok(!html.includes('<svg onload'));
+});
+
+for(const language of ['en','es'])test(`all views, recipes and shopping exports translate into ${language}`,()=>{
+ const a=app(null,language);
+ for(const view of ['renderDay','renderPlan','renderRecipes','renderBasket','renderSettings']){
+  const text=a.api[view]().replace(/<[^>]*>/g,' ').replaceAll('Жена','').replaceAll('Я','');
+  const cyrillic=text.match(/[А-Яа-яЁё][А-Яа-яЁё ,.:;!?—«»−0-9%()\/]*[А-Яа-яЁё]/g)||[];
+  assert.deepEqual([...new Set(cyrillic)],[],`${view}: ${cyrillic.join(' | ')}`);
+ }
+ a.api.openRecipe('omelet-protein',a.api.day());assert.match(a.node('#recipeDialog').innerHTML,language==='en'?/Whole-egg/:/Tortilla/);
+ assert.match(a.api.basketText(),language==='en'?/Chicken breast/:/Pechuga de pollo/);
+ assert.ok(!a.api.basketText().includes('Куриное филе'));
+});
+test('language changes preserve plan data, translate again and persist device preference',()=>{
+ const a=app();const before=JSON.stringify(a.api.state());
+ a.api.setLanguage('es');assert.match(a.api.renderDay(),/Menú del día/);assert.equal(a.storage.get('ration-language'),'es');
+ a.api.setLanguage('en');assert.match(a.api.renderDay(),/Today.s menu/);
+ a.api.setLanguage('ru');assert.match(a.api.renderDay(),/Меню на день/);assert.equal(JSON.stringify(a.api.state()),before);
+});
+test('top-bar and settings exit controls share the account sign-out action',async()=>{
+ const a=app(null,'en');let calls=0;a.api.setAccount({email:'person@example.test'},{logout:async()=>{calls++}});a.api.render();
+ assert.equal(a.node('#topLogout').hidden,false);assert.match(a.node('#topLogout').innerHTML,/Sign out/);assert.match(a.api.accountPanel(),/accountLogout/);assert.match(a.api.accountPanel(),/svg/);
+ await a.dispatch('click',{id:'topLogout'});await a.dispatch('click',{id:'accountLogout'});assert.equal(calls,2);
 });

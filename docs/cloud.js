@@ -1,16 +1,17 @@
+import {t,html,getLanguage} from './i18n.js';
 import {supabaseConfig} from './config.js';
 export function authErrorMessage(error){
  const text=String(error?.message||'');
- if(/invalid login credentials/i.test(text))return 'Неверный email или пароль.';
- if(/email not confirmed/i.test(text))return 'Подтверди email по письму, затем войди.';
- if(/rate|too many|after.*seconds/i.test(text))return 'Слишком много попыток. Подожди немного и повтори.';
- if(/email address.*invalid|invalid email/i.test(text))return 'Проверь адрес электронной почты.';
- if(/password/i.test(text))return 'Пароль не соответствует требованиям. Используй не менее 8 символов.';
- if(/email.*(not authorized|restricted)|smtp/i.test(text))return 'Не удалось отправить письмо. Для регистрации может потребоваться настройка почты в Supabase.';
- if(/network|fetch|load/i.test(text))return 'Нет соединения с сервером. Проверь интернет и повтори.';
- return 'Не удалось выполнить запрос. Попробуй ещё раз.';
+ if(/invalid login credentials/i.test(text))return t('Неверный email или пароль.');
+ if(/email not confirmed/i.test(text))return t('Подтверди email по письму, затем войди.');
+ if(/rate|too many|after.*seconds/i.test(text))return t('Слишком много попыток. Подожди немного и повтори.');
+ if(/email address.*invalid|invalid email/i.test(text))return t('Проверь адрес электронной почты.');
+ if(/password/i.test(text))return t('Пароль не соответствует требованиям. Используй не менее 8 символов.');
+ if(/email.*(not authorized|restricted)|smtp/i.test(text))return t('Не удалось отправить письмо. Для регистрации может потребоваться настройка почты в Supabase.');
+ if(/network|fetch|load/i.test(text))return t('Нет соединения с сервером. Проверь интернет и повтори.');
+ return t('Не удалось выполнить запрос. Попробуй ещё раз.');
 }
-export function userCacheKey(userId){if(!/^[a-f0-9-]{36}$/.test(userId))throw Error('Invalid account');return `ration-account-${userId}-v4`;}
+export function userCacheKey(userId){if(!/^[a-f0-9-]{36}$/.test(userId))throw Error('Invalid account');return html`ration-account-${userId}-v4`;}
 export function createSyncQueue({save,onStatus,delay=800,setTimer=setTimeout,clearTimer=clearTimeout}){
  let timer=null,latest=null,running=false,paused=false,revision=0,generation=0;
  async function flush(){
