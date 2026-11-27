@@ -1,6 +1,6 @@
 import {translateText,normalizeSearch,recipeSearchText,supportedLanguages} from './i18n.js';
-import {foods,recipes,weekPattern,spanishFoods,portionGroups} from './data.js';
-import {foodsFor,spanishFor,recipesFor,validateCustomCatalog} from './custom-recipes.js';
+import {foods,recipes,weekPattern,spanishFoods,portionGroups,drinkRecipes} from './data.js';
+import {foodsFor,spanishFor,recipesFor,validateCustomCatalog,singlePortionIngredients} from './custom-recipes.js';
 export const localDate = (d=new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 export const parseDate = key => new Date(`${key}T12:00:00`);
 export const addDays=(key,n)=>{const d=parseDate(key);d.setDate(d.getDate()+n);return localDate(d)};
@@ -24,16 +24,26 @@ export function recipeAmounts(recipe,person){
  const group=portionGroups[recipe.portionGroup];if(!group)return {};
  return {...group.defaults,...(person.id==='wife'?group.wifeDefaults||{}:{}),...(person.recipeAmounts?.[recipe.portionGroup]||{})};
 }
+export const drinkSettings=person=>({kind:'coffee-milk',cups:2,milk:75,coffee:7,...person.drinks});
+export function dailyDrinks(key,state,person=activeProfile(state)){
+ const prefs=drinkSettings(person),recipe=drinkRecipes.find(r=>r.id===prefs.kind);
+ if(!recipe||!prefs.cups)return [];
+ const ingredients={coffee:30,...(prefs.kind==='coffee-milk'?{lactoseFreeMilk2:prefs.milk}:{})};
+ return Array.from({length:prefs.cups},(_,index)=>({...recipe,drink:true,index,servingTime:['10:30','16:00','18:00','08:30','12:00','14:00'][index],ingredients:{...ingredients},shoppingIngredients:{...ingredients,coffee:prefs.coffee},macros:nutrition(ingredients,foodsFor(state)),personId:person.id}));
+}
 export function planDay(key,state,person=activeProfile(state)){
  const ids=state.overrides?.[key] || weekPattern[weekday(key)];
  const base=ids.map(id=>recipesFor(state).find(r=>r.id===id));
- const prepared=base.map(r=>({recipe:r,fixed:recipeAmounts(r,person)}));
- let fixedCalories=0,variableCalories=0;
- for(const {recipe:r,fixed} of prepared){const ingredients={...r.ingredients,...fixed};for(const [food,g]of Object.entries(ingredients)){const kcal=foodsFor(state)[food][2]*g/100;if(Object.hasOwn(fixed,food))fixedCalories+=kcal;else variableCalories+=kcal;}}
- const target=dayTarget(key,state,person),factor=(target-fixedCalories)/variableCalories;
- if(!Number.isFinite(factor)||factor<=0)throw Error('Fixed amounts exceed daily target');
- return prepared.map(({recipe:r,fixed},slot)=>{const ingredients=Object.fromEntries(Object.entries({...r.ingredients,...fixed}).map(([id,g])=>[id,Object.hasOwn(fixed,id)?g:round(g*factor)]));return {...r,slot,ingredients,macros:nutrition(ingredients,foodsFor(state)),factor,personId:person.id,fixedIngredients:Object.keys(fixed)}});
+ const prepared=base.map(r=>{const ingredients=r.custom&&r.servings!==undefined?singlePortionIngredients(r):r.ingredients;return {recipe:r,ingredients,fixed:r.custom&&r.servings!==undefined?ingredients:recipeAmounts(r,person)};});
+ let fixedCalories=sumNutrition(dailyDrinks(key,state,person).map(m=>m.macros))[0],variableCalories=0;
+ for(const {ingredients:base,fixed} of prepared)for(const [food,g]of Object.entries({...base,...fixed})){const kcal=foodsFor(state)[food][2]*g/100;if(Object.hasOwn(fixed,food))fixedCalories+=kcal;else variableCalories+=kcal;}
+ const remaining=dayTarget(key,state,person)-fixedCalories;
+ // Never shrink a declared portion or fail to display a plan when fixed portions exceed the target.
+ const factor=variableCalories>0&&remaining>0?remaining/variableCalories:1;
+ return prepared.map(({recipe:r,ingredients:base,fixed},slot)=>{const ingredients=Object.fromEntries(Object.entries({...base,...fixed}).map(([id,g])=>[id,round(Object.hasOwn(fixed,id)?g:g*factor)]));return {...r,slot,ingredients,macros:nutrition(ingredients,foodsFor(state)),factor,personId:person.id,fixedIngredients:Object.keys(fixed)}});
 }
+export const allDayMeals=(key,state,person=activeProfile(state))=>[...planDay(key,state,person),...dailyDrinks(key,state,person)];
+export const shoppingIngredientsFor=meal=>meal.shoppingIngredients||{...meal.ingredients,...(meal.ingredients.coffee?{coffee:meal.ingredients.coffee*7/30}:{})};
 export function searchReplacements(state,key,slot,query=''){
  if(!Number.isInteger(slot)||slot<0||slot>3)return [];
  const q=normalizeSearch(query);
@@ -78,8 +88,8 @@ export function householdRecipe(id,key,state){
 }
 export function basket(dates,state,personIds=null){
  const people=personIds?state.profiles.filter(p=>personIds.includes(p.id)):shoppingProfiles(state),sums={},byPerson={};
- for(const person of people){byPerson[person.id]={};for(const key of dates)for(const meal of planDay(key,state,person))for(const [id,g]of Object.entries(meal.ingredients)){sums[id]=(sums[id]||0)+g;byPerson[person.id][id]=(byPerson[person.id][id]||0)+g;}}
- return Object.entries(sums).map(([id,g])=>({id,name:foodsFor(state)[id][0],spanish:spanishFor(state,id),category:foodsFor(state)[id][1],grams:round(g),byPerson:Object.fromEntries(people.map(p=>[p.id,round(byPerson[p.id][id]||0)]))})).sort((a,b)=>a.category.localeCompare(b.category,'ru')||a.name.localeCompare(b.name,'ru'));
+ for(const person of people){byPerson[person.id]={};for(const key of dates)for(const meal of allDayMeals(key,state,person))for(const [id,g]of Object.entries(shoppingIngredientsFor(meal))){sums[id]=(sums[id]||0)+g;byPerson[person.id][id]=(byPerson[person.id][id]||0)+g;}}
+ return Object.entries(sums).filter(([,g])=>g>0).map(([id,g])=>({id,name:id==='coffee'?'Кофе в зёрнах / молотый':foodsFor(state)[id][0],spanish:spanishFor(state,id),category:foodsFor(state)[id][1],grams:round(g),byPerson:Object.fromEntries(people.map(p=>[p.id,round(byPerson[p.id][id]||0)]))})).sort((a,b)=>a.category.localeCompare(b.category,'ru')||a.name.localeCompare(b.name,'ru'));
 }
 export const basketKey=(dates,item)=>`${dates[0]}:${dates.at(-1)}:${item.id}:${item.grams}`;
 export function resizeWeight(person,weight){
@@ -122,6 +132,9 @@ export function validateState(s){
  for(const p of [...s.profiles,...s.archivedProfiles.map(entry=>entry.profile)]){
   if(!obj(p)||typeof p.id!=='string'||!/^[a-z0-9-]{1,50}$/.test(p.id)||ids.has(p.id)||typeof p.name!=='string'||!p.name.trim()||p.name.length>40||!finite(p.kcal,1200,5000)||!finite(p.weight,40,180)||!(p.height===null||finite(p.height,130,220))||!(p.age===null||finite(p.age,18,100))||!['male','female'].includes(p.sex)||![1.2,1.375,1.55,1.725].includes(p.activity)||![-.15,0,.1].includes(p.adjustment)||typeof p.inShopping!=='boolean'||typeof p.linkWeight!=='boolean'||typeof p.demo!=='boolean'||!finite(p.bonus,0,1000)||!Array.isArray(p.trainingDays)||!p.trainingDays.every(d=>Number.isInteger(d)&&d>=0&&d<=6)||!obj(p.trainingOverrides)||!obj(p.logged)||!obj(p.water))throw Error('Invalid profile');
   ids.add(p.id);
+  if(p.drinks!==undefined){const d=p.drinks;if(!obj(d)||!drinkRecipes.some(r=>r.id===d.kind)||!Number.isInteger(d.cups)||!finite(d.cups,0,6)||!finite(d.milk,0,500)||!finite(d.coffee,0,30))throw Error('Invalid daily drinks');}
+  if(p.drinkLogs!==undefined&&(!obj(p.drinkLogs)||!Object.entries(p.drinkLogs).every(([k,v])=>/^\d{4}-\d{2}-\d{2}:[0-5]$/.test(k)&&keyOk(k.slice(0,10))&&obj(v)&&drinkRecipes.some(r=>r.id===v.id)&&Array.isArray(v.macros)&&v.macros.length===4&&v.macros.every(n=>finite(n,0,20000)))))throw Error('Invalid drink diary');
+
   if(!obj(p.recipeAmounts))throw Error('Invalid portion preferences');
   for(const [groupId,values]of Object.entries(p.recipeAmounts)){
    const group=portionGroups[groupId];if(!group||!obj(values))throw Error('Invalid recipe group');

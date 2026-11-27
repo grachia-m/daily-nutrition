@@ -570,3 +570,19 @@ export const productSources = {
 };
 
 for(const r of recipes)if(r.id.startsWith('evening-'))r.servingTime='21:00';
+
+// Coffee is measured as the prepared drink for nutrition; the basket uses the bean dose.
+Object.assign(foods,{
+ lactoseFreeMilk2:['Молоко без лактозы 2%','Молочное и яйца',50,3.2,2,4.8],
+ coffee:['Кофе эспрессо (готовый)','Напитки',2,0.1,0,0]
+});
+Object.assign(spanishFoods,{lactoseFreeMilk2:'leche sin lactosa, 2% de materia grasa',coffee:'café en grano / café molido'});
+Object.assign(shoppingHints,{
+ lactoseFreeMilk2:'Для кофе: по 75 г молока на чашку каждому, два раза в день. На двоих это 150 г за один приём и 300 г за день. КБЖУ примерные: 50 ккал, Б 3,2 г, Ж 2 г, У 4,8 г на 100 г. Проверь этикетку своего молока.',
+ coffee:'В корзине — масса зёрен или молотого кофе, а не готового напитка. Стартовый ориентир 7 г на чашку можно изменить в настройках напитков. Для КБЖУ считается около 30 г готового эспрессо; вода в покупки не входит.'
+});
+export const drinkRecipes=[
+ {id:'coffee-milk',title:'Кофе с безлактозным молоком 2%',subtitle:'Кофе из кофемашины и молоко без сахара',image:'coffee',time:2,ingredients:{coffee:30,lactoseFreeMilk2:75},steps:['Приготовь эспрессо в кофемашине. Добавь молоко: по 75 г на человека. Сахар в расчёт не включён.']},
+ {id:'coffee-black',title:'Кофе чёрный',subtitle:'Эспрессо из кофемашины без добавок',image:'coffee',time:2,ingredients:{coffee:30},steps:['Приготовь эспрессо в кофемашине. Молоко, сахар и другие добавки не включены.']}
+];
+mealPhotos.coffee={url:'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1000&q=85',credit:'Unsplash · coffee',source:'https://unsplash.com'};

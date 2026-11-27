@@ -100,3 +100,21 @@ test('top-bar and settings exit controls share the account sign-out action',asyn
  assert.equal(a.node('#topLogout').hidden,false);assert.match(a.node('#topLogout').innerHTML,/Sign out/);assert.match(a.api.accountPanel(),/accountLogout/);assert.match(a.api.accountPanel(),/svg/);
  await a.dispatch('click',{id:'topLogout'});await a.dispatch('click',{id:'accountLogout'});assert.equal(calls,2);
 });
+test('recipe form saves a four-portion batch with no time or instructions, and edits it without duplication',async()=>{
+ const a=app();a.api.openRecipeEditor();
+ a.node('#customTitle').value='Мой рис';a.node('#customSlot').value='1';a.node('#customServings').value='4';a.node('#customTime').value='';a.node('#customSteps').value='';a.node('#ingredientPaste').value='Рис 400 г';
+ await a.dispatch('click',{id:'saveCustomRecipe'});const recipe=a.api.state().customRecipes[0];assert.ok(recipe);assert.equal(recipe.servings,4);assert.equal(recipe.ingredients.rice,400);assert.deepEqual([...recipe.steps],[]);assert.equal(recipe.time,null);
+ a.api.openRecipe(recipe.id,a.api.day());assert.match(a.node('#recipeDialog').innerHTML,/Одна порция для каждого/);assert.match(a.node('#recipeDialog').innerHTML,/Порций в рецепте: 4/);assert.ok(!a.node('#recipeDialog').innerHTML.includes('null МИНУТ'));
+ await a.dispatch('click',{dataset:{editRecipe:recipe.id}});a.node('#customServings').value='8';await a.dispatch('click',{id:'saveCustomRecipe'});assert.equal(a.api.state().customRecipes.length,1);assert.equal(a.api.state().customRecipes[0].servings,8);
+});
+test('own ingredient needs a name and nutrition, but not a Spanish translation',async()=>{
+ const a=app();a.api.openRecipeEditor();a.node('#customServings').value='1';a.node('#foodRu').value='Моё молоко';a.node('#foodEs').value='';
+ for(const [key,value]of Object.entries({Kcal:50,Protein:3.2,Fat:2,Carbs:4.8}))a.node('#food'+key).value=String(value);
+ await a.dispatch('click',{id:'addCustomFood'});const food=Object.values(a.api.state().customFoods)[0];assert.ok(food);assert.equal(food.spanish,'Моё молоко');
+});
+test('daily coffee is visible, included in shopping and logged separately for each person',async()=>{
+ const a=app();assert.match(a.api.renderDay(),/Напитки за день/);assert.match(a.api.renderBasket(),/leche sin lactosa/);
+ await a.dispatch('click',{dataset:{logDrink:'0'}});assert.equal(Object.keys(a.api.person().drinkLogs).length,1);
+ await a.dispatch('click',{dataset:{person:'wife'}});assert.equal(a.api.person().drinkLogs,undefined);
+ await a.dispatch('change',{dataset:{drinkField:'cups'},value:'0'});assert.match(a.api.renderDay(),/Напитки отключены/);
+});

@@ -11,7 +11,7 @@ export function validateCustomCatalog(state){
  }
  const knownFoods=foodsFor(state),ids=new Set();
  for(const r of list){
-  if(!r||Object.keys(r).some(k=>!['id','title','slot','time','subtitle','image','ingredients','steps','custom'].includes(k))||!/^recipe-[a-z0-9-]{8,50}$/.test(r.id)||ids.has(r.id)||typeof r.title!=='string'||r.title.trim().length<2||r.title.length>120||!Number.isInteger(r.slot)||r.slot<0||r.slot>3||!Number.isInteger(r.time)||r.time<1||r.time>240||!Object.hasOwn(mealPhotos,r.image)||typeof r.subtitle!=='string'||r.subtitle.length>200||!r.ingredients||Array.isArray(r.ingredients)||typeof r.ingredients!=='object'||Object.keys(r.ingredients).length<1||Object.keys(r.ingredients).length>30||!Object.entries(r.ingredients).every(([id,g])=>Object.hasOwn(knownFoods,id)&&Number.isFinite(g)&&g>0&&g<=5000)||!Array.isArray(r.steps)||r.steps.length<1||r.steps.length>15||!r.steps.every(s=>typeof s==='string'&&s.trim()&&s.length<=1500)||r.portionGroup||r.video||r.search)throw Error('Invalid custom recipe');
+  if(!r||Object.keys(r).some(k=>!['id','title','slot','time','subtitle','image','ingredients','steps','custom','servings'].includes(k))||!/^recipe-[a-z0-9-]{8,50}$/.test(r.id)||ids.has(r.id)||typeof r.title!=='string'||r.title.trim().length<2||r.title.length>120||!Number.isInteger(r.slot)||r.slot<0||r.slot>3||!(r.time==null||Number.isInteger(r.time)&&r.time>=1&&r.time<=240)||!Object.hasOwn(mealPhotos,r.image)||typeof r.subtitle!=='string'||r.subtitle.length>200||!r.ingredients||Array.isArray(r.ingredients)||typeof r.ingredients!=='object'||Object.keys(r.ingredients).length<1||Object.keys(r.ingredients).length>30||!Object.entries(r.ingredients).every(([id,g])=>Object.hasOwn(knownFoods,id)&&Number.isFinite(g)&&g>0&&g<=5000)||!Array.isArray(r.steps)||r.steps.length>15||!r.steps.every(s=>typeof s==='string'&&s.trim()&&s.length<=1500)||r.portionGroup||r.video||r.search||(r.servings!==undefined&&(!Number.isInteger(r.servings)||r.servings<1||r.servings>100)))throw Error('Invalid custom recipe');
   if(!Object.entries(r.ingredients).some(([id,g])=>knownFoods[id][2]*g>0))throw Error('Recipe needs calories');ids.add(r.id);
  }
  return true;
@@ -37,8 +37,8 @@ export function parseIngredientText(text,state){
 export function recipeMacros(ingredients,state){const f=foodsFor(state);return Object.entries(ingredients).reduce((out,[id,g])=>out.map((v,i)=>v+f[id][i+2]*g/100),[0,0,0,0]);}
 export function createCustomRecipe(draft,state,id){
  const ingredients={};for(const row of draft.rows||[])ingredients[row.id]=(ingredients[row.id]||0)+Number(row.grams);
- const recipe={id,title:String(draft.title||'').trim(),slot:Number(draft.slot),time:Number(draft.time),subtitle:'Мой рецепт · КБЖУ по составу',image:['oats','chicken','pasta','yogurt'][Number(draft.slot)],ingredients,steps:String(draft.steps||'').split('\n').map(s=>s.trim()).filter(Boolean),custom:true};
- validateCustomCatalog({...state,customRecipes:[...(state.customRecipes||[]),recipe]});return recipe;
+ const recipe={id,title:String(draft.title||'').trim(),slot:Number(draft.slot),time:draft.time==null||draft.time===''?null:Number(draft.time),servings:Number(draft.servings??1),subtitle:'Мой рецепт · КБЖУ по составу',image:['oats','chicken','pasta','yogurt'][Number(draft.slot)],ingredients,steps:String(draft.steps||'').split('\n').map(s=>s.trim()).filter(Boolean),custom:true};
+ validateCustomCatalog({...state,customRecipes:[...(state.customRecipes||[]).filter(r=>r.id!==id),recipe]});return recipe;
 }
 export function parseModelSteps(text){
  const clean=String(text).replace(/<think>[\s\S]*?<\/think>/g,'').replace(/^```(?:json)?\s*|```$/g,'').trim(),start=clean.indexOf('{'),end=clean.lastIndexOf('}');
@@ -47,3 +47,6 @@ export function parseModelSteps(text){
  if(!Array.isArray(value.steps)||value.steps.length<1||value.steps.length>15||!value.steps.every(s=>typeof s==='string'&&s.trim()&&s.length<=1500))throw Error('Invalid preparation steps');
  return {steps:value.steps,time:Number.isInteger(value.time)&&value.time>=1&&value.time<=240?value.time:20};
 }
+
+export const servingsFor=recipe=>recipe.servings??1;
+export function singlePortionIngredients(recipe){const count=servingsFor(recipe);return Object.fromEntries(Object.entries(recipe.ingredients).map(([id,g])=>[id,g/count]));}

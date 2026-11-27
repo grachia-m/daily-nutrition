@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultState,setMeal,planDay,basket,nutrition,dayTarget,sumNutrition,migrateState} from '../dist/engine.js';
+import {defaultState,setMeal,planDay,basket,nutrition,dayTarget,sumNutrition,migrateState,allDayMeals} from '../dist/engine.js';
 import {parseIngredientText,createCustomRecipe,recipeMacros,parseModelSteps,validateCustomCatalog} from '../dist/custom-recipes.js';
 const state=()=>defaultState(),date='2026-11-27';
 test('ingredient parser converts grams/kg, matches aliases and refuses guessed amounts',()=>{
@@ -9,7 +9,7 @@ test('ingredient parser converts grams/kg, matches aliases and refuses guessed a
 });
 test('custom recipe uses ingredient nutrition, can join shared menus and shopping, and survives import',()=>{
  let s=state();const r=createCustomRecipe({title:'Моя курица',slot:1,time:30,rows:[{id:'chicken',grams:200},{id:'rice',grams:80}],steps:'Отварить рис.\nПриготовить курицу до полной готовности.'},s,'recipe-12345678');s.customRecipes.push(r);s=setMeal(s,date,1,r.id);
- assert.deepEqual(recipeMacros(r.ingredients,s),nutrition(r.ingredients));assert.ok(Math.abs(sumNutrition(planDay(date,s).map(r=>r.macros))[0]-dayTarget(date,s))<3);assert.ok(basket([date],s).some(r=>r.id==='rice'));assert.deepEqual(migrateState(JSON.parse(JSON.stringify(s))),s);
+ assert.deepEqual(recipeMacros(r.ingredients,s),nutrition(r.ingredients));assert.ok(Math.abs(sumNutrition(allDayMeals(date,s).map(r=>r.macros))[0]-dayTarget(date,s))<3);assert.ok(basket([date],s).some(r=>r.id==='rice'));assert.deepEqual(migrateState(JSON.parse(JSON.stringify(s))),s);
 });
 test('own food uses its label and cannot override a built-in or use inherited object keys',()=>{
  const s=state();s.customFoods['food-12345678']={food:['Мой йогурт','Свои продукты',65,8,2,4],spanish:'Mi yogur'};

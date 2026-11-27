@@ -50,9 +50,16 @@ create table public.custom_foods (
 create table public.custom_recipes (
  user_id uuid not null references auth.users(id) on delete cascade, recipe_id text not null,
  title text not null check(length(title) between 2 and 120), meal_slot smallint not null check(meal_slot between 0 and 3),
- time_minutes smallint not null check(time_minutes between 1 and 240), ingredients jsonb not null, steps jsonb not null,
- recipe_json jsonb not null, primary key(user_id,recipe_id)
+ time_minutes smallint check(time_minutes between 1 and 240), ingredients jsonb not null, steps jsonb not null,
+ recipe_json jsonb not null, servings integer check(servings between 1 and 100), primary key(user_id,recipe_id)
 );
+create function public.set_recipe_batch_yield() returns trigger
+language plpgsql security invoker set search_path=''
+as $$ begin new.servings := (new.recipe_json->>'servings')::integer; return new; end $$;
+revoke all on function public.set_recipe_batch_yield() from public,anon,authenticated;
+create trigger set_recipe_batch_yield before insert or update of recipe_json on public.custom_recipes
+for each row execute function public.set_recipe_batch_yield();
+
 -- RLS is both authentication and ownership: no anonymous access, no cross-account rows.
 do $$
 declare t text;

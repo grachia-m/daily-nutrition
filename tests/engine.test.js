@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {foods,recipes,spanishFoods,mealPhotos,portionGroups} from '../dist/data.js';
-import {dateRange,weekStart,planDay,basket,nutrition,sumNutrition,dayTarget,householdTarget,householdRecipe,portionForRecipe,defaultState,resizeWeight,basketKey,activeProfile,makeProfile,migrateState,validateState,estimateCalories,searchReplacements,setMeal,setRecipeAmounts,removeProfile,restoreProfile} from '../dist/engine.js';
+import {dateRange,weekStart,planDay,basket,nutrition,sumNutrition,dayTarget,householdTarget,householdRecipe,portionForRecipe,defaultState,resizeWeight,basketKey,activeProfile,makeProfile,migrateState,validateState,estimateCalories,searchReplacements,setMeal,setRecipeAmounts,removeProfile,restoreProfile,allDayMeals,shoppingIngredientsFor,dailyDrinks} from '../dist/engine.js';
 const date='2026-11-26';
 test('calendar handles week boundaries, leap February, year boundary',()=>{
  assert.equal(weekStart(date),'2026-11-23');assert.equal(dateRange('2028-02-14','month').length,29);
@@ -17,16 +17,16 @@ test('brown rice replaces the old garnish at comparable calories',()=>{
 });
 test('daily nutrition matches each individual target through a full month including swaps and training',()=>{
  const s=defaultState();s.overrides[date]=['pancakes','chicken-potato','turkey-pasta','cottage'];s.profiles[1].trainingOverrides[date]=true;s.profiles[1].bonus=100;
- for(const person of s.profiles)for(const kcal of [1200,1800,2400,5000])for(const day of dateRange(date,'month')){person.kcal=kcal;const total=sumNutrition(planDay(day,s,person).map(m=>m.macros));assert.ok(Math.abs(total[0]-dayTarget(day,s,person))<3,`${day}: ${total[0]}`);}
+ for(const person of s.profiles)for(const kcal of [1200,1800,2400,5000])for(const day of dateRange(date,'month')){person.kcal=kcal;const total=sumNutrition(allDayMeals(day,s,person).map(m=>m.macros));assert.ok(Math.abs(total[0]-dayTarget(day,s,person))<3,`${day}: ${total[0]}`);}
 });
 test('family basket exactly sums individually rounded day, week, and month portions',()=>{
  const s=defaultState();
- for(const scope of ['day','week','month']){const dates=dateRange(date,scope),rows=basket(dates,s);for(const row of rows){const expected=s.profiles.flatMap(p=>dates.flatMap(d=>planDay(d,s,p))).reduce((t,m)=>t+(m.ingredients[row.id]||0),0);assert.ok(Math.abs(expected-row.grams)<.06);assert.ok(Math.abs(Object.values(row.byPerson).reduce((a,b)=>a+b,0)-row.grams)<.06);}}
+ for(const scope of ['day','week','month']){const dates=dateRange(date,scope),rows=basket(dates,s);for(const row of rows){const expected=s.profiles.flatMap(p=>dates.flatMap(d=>allDayMeals(d,s,p))).reduce((t,m)=>t+(shoppingIngredientsFor(m)[row.id]||0),0);assert.ok(Math.abs(expected-row.grams)<.06);assert.ok(Math.abs(Object.values(row.byPerson).reduce((a,b)=>a+b,0)-row.grams)<.06);}}
 });
 test('wife target changes only her portion and the family shopping total',()=>{
  const s=defaultState(),dates=dateRange(date),me=planDay(date,s,s.profiles[0]),wife=planDay(date,s,s.profiles[1]),before=basket(dates,s);s.profiles[1].kcal=2200;
  assert.deepEqual(planDay(date,s,s.profiles[0]),me);assert.ok(planDay(date,s,s.profiles[1])[0].macros[0]>wife[0].macros[0]);
- const after=basket(dates,s);assert.ok(after.every(r=>r.grams>before.find(x=>x.id===r.id).grams));
+ const after=basket(dates,s);assert.ok(after.every(r=>r.grams>=before.find(x=>x.id===r.id).grams));assert.ok(after.some(r=>r.grams>before.find(x=>x.id===r.id).grams));
 });
 test('basket can include one, two, three, or zero people without duplicating servings',()=>{
  const s=defaultState(),dates=dateRange(date);s.profiles.push(makeProfile('guest','Гость',{kcal:2000}));const three=basket(dates,s);s.profiles[2].inShopping=false;const two=basket(dates,s);s.profiles[1].inShopping=false;const one=basket(dates,s);
@@ -82,7 +82,7 @@ test('replacement changes only requested date and slot, rejects cross-category d
 });
 test('overnight keeps 200/150g milk and 15g powder each while meeting personal calorie targets',()=>{
  const s=setMeal(defaultState(),date,0,'overnight-nut-muesli');
- for(const [i,p]of s.profiles.entries()){const plan=planDay(date,s,p);assert.equal(plan[0].ingredients.milk,i===0?200:150);assert.equal(plan[0].ingredients.whey,15);assert.ok(Math.abs(sumNutrition(plan.map(m=>m.macros))[0]-dayTarget(date,s,p))<3);}
+ for(const [i,p]of s.profiles.entries()){const plan=planDay(date,s,p);assert.equal(plan[0].ingredients.milk,i===0?200:150);assert.equal(plan[0].ingredients.whey,15);assert.ok(Math.abs(sumNutrition([...plan,...dailyDrinks(date,s,p)].map(m=>m.macros))[0]-dayTarget(date,s,p))<3);}
  const resized={...s,profiles:s.profiles.map(p=>({...p,kcal:3000}))};assert.equal(planDay(date,resized)[0].ingredients.whey,15);assert.equal(planDay(date,resized)[0].ingredients.milk,200);
 });
 test('evening bowl uses a shared 175g cottage pack for two and keeps dairy fixed',()=>{
@@ -104,7 +104,7 @@ test('every new breakfast/snack combination stays positive and meets target at m
  let s=defaultState();for(const p of s.profiles)for(const [id,group]of Object.entries(portionGroups))s=setRecipeAmounts(s,p.id,id,Object.fromEntries(Object.entries(group.fields).map(([food,rule])=>[food,rule.max])));
  for(const breakfast of recipes.filter(r=>r.slot===0))for(const snack of recipes.filter(r=>r.slot===3)){
   let next=setMeal(setMeal(s,date,0,breakfast.id),date,3,snack.id);
-  for(const p of next.profiles){p.kcal=1200;const plan=planDay(date,next,p);assert.ok(plan.every(m=>Object.values(m.ingredients).every(g=>g>=0)));assert.ok(Math.abs(sumNutrition(plan.map(m=>m.macros))[0]-dayTarget(date,next,p))<3);}
+  for(const p of next.profiles){p.kcal=1200;const plan=planDay(date,next,p);assert.ok(plan.every(m=>Object.values(m.ingredients).every(g=>g>=0)));const total=sumNutrition([...plan,...dailyDrinks(date,next,p)].map(m=>m.macros))[0],fixed=plan.reduce((sum,m)=>sum+nutrition(Object.fromEntries(Object.entries(m.ingredients).filter(([id])=>m.fixedIngredients.includes(id))))[0],0)+sumNutrition(dailyDrinks(date,next,p).map(m=>m.macros))[0];if(fixed<dayTarget(date,next,p))assert.ok(Math.abs(total-dayTarget(date,next,p))<3);else assert.ok(total>=fixed);}
  }
 });
 test('removal and recovery preserve diary, custom portions and active selection without mutating prior state',()=>{

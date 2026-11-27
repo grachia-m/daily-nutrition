@@ -2429,3 +2429,75 @@ export const translations = {
   "Planificación diaria. Recetas con cantidades, calculadora de porciones y una lista de la compra semanal."
  ]
 };
+
+// Batch portions and daily drinks.
+Object.assign(translations,{
+ 'Молоко без лактозы 2%':['Lactose-free milk 2%','Leche sin lactosa 2 %'],
+ 'Кофе эспрессо (готовый)':['Espresso (brewed)','Café expreso (preparado)'],
+ 'Кофе в зёрнах / молотый':['Coffee beans / ground coffee','Café en grano / molido'],
+ 'Напитки':['Drinks','Bebidas'],
+ 'Кофе с безлактозным молоком 2%':['Coffee with lactose-free milk 2%','Café con leche sin lactosa 2 %'],
+ 'Кофе из кофемашины и молоко без сахара':['Machine-brewed coffee and milk, no sugar','Café de cafetera y leche sin azúcar'],
+ 'Кофе чёрный':['Black coffee','Café solo'],
+ 'Эспрессо из кофемашины без добавок':['Machine-brewed espresso, no additions','Expreso de cafetera sin añadidos'],
+ 'Приготовь эспрессо в кофемашине. Добавь молоко: по 75 г на человека. Сахар в расчёт не включён.':['Make an espresso with your coffee machine. Add 75 g milk per person. Sugar is not included.','Prepara un expreso en la cafetera. Añade 75 g de leche por persona. El azúcar no está incluido.'],
+ 'Приготовь эспрессо в кофемашине. Молоко, сахар и другие добавки не включены.':['Make an espresso with your coffee machine. Milk, sugar and other additions are not included.','Prepara un expreso en la cafetera. No se incluyen leche, azúcar ni otros añadidos.'],
+ 'Для кофе: по 75 г молока на чашку каждому, два раза в день. На двоих это 150 г за один приём и 300 г за день. КБЖУ примерные: 50 ккал, Б 3,2 г, Ж 2 г, У 4,8 г на 100 г. Проверь этикетку своего молока.':['For coffee: 75 g milk per cup per person, twice daily. For two people: 150 g at a time and 300 g daily. Approximate values per 100 g: 50 kcal, 3.2 g protein, 2 g fat, 4.8 g carbs. Check your label.','Para el café: 75 g de leche por taza y persona, dos veces al día. Para dos: 150 g cada vez y 300 g al día. Valores aproximados por 100 g: 50 kcal, 3,2 g de proteínas, 2 g de grasas y 4,8 g de hidratos. Consulta tu etiqueta.'],
+ 'В корзине — масса зёрен или молотого кофе, а не готового напитка. Стартовый ориентир 7 г на чашку можно изменить в настройках напитков. Для КБЖУ считается около 30 г готового эспрессо; вода в покупки не входит.':['Shopping quantities are beans or ground coffee, not brewed drink. Adjust the initial 7 g per cup in drink settings. Nutrition uses about 30 g brewed espresso; water is not added to shopping.','La lista cuenta granos o café molido, no el peso de la bebida. Puedes cambiar los 7 g iniciales por taza en ajustes. Los valores usan unos 30 g de expreso preparado; el agua no entra en la compra.'],
+ 'Редактировать':['Edit','Editar'],
+ 'Редактировать рецепт':['Edit recipe','Editar receta'],
+ 'Одна порция из':['One portion of','Una porción de'],
+ 'Шаги приготовления не добавлены.':['No preparation steps added.','No se han añadido pasos de preparación.'],
+ 'Количество порций':['Number of portions','Número de porciones'],
+ 'Время, минут (необязательно)':['Time, minutes (optional)','Tiempo, minutos (opcional)'],
+ 'Шаги приготовления (необязательно)':['Preparation steps (optional)','Preparación (opcional)'],
+ 'По-испански (необязательно)':['In Spanish (optional)','En español (opcional)'],
+ 'На одну порцию':['Per portion','Por porción'],
+ 'Всё блюдо:':['Whole batch:','Receta completa:'],
+ 'Порций:':['Portions:','Porciones:'],
+ 'Все ингредиенты выше — на целое блюдо. В меню каждый человек получает одну порцию. Остальные блюда подстраиваются под цель калорий.':['Ingredients above are for the whole batch. Each person gets one portion in the menu. Other meals adapt to the calorie target.','Los ingredientes son para toda la receta. Cada persona recibe una porción en el menú. Los demás platos se ajustan al objetivo calórico.'],
+ 'Укажи название, число порций и ингредиенты с весом. Время и шаги необязательны.':['Enter a name, number of portions and weighed ingredients. Time and steps are optional.','Indica nombre, número de porciones e ingredientes con peso. El tiempo y los pasos son opcionales.'],
+ 'Порции зафиксированы: в плане':['Fixed portions: planned','Porciones fijas: en el plan'],
+ 'ккал, цель':['kcal, target','kcal, objetivo'],
+ 'ккал. Измени число порций рецепта или выбери другое блюдо.':['kcal. Change the recipe yield or choose another meal.','kcal. Cambia las porciones de la receta o elige otro plato.'],
+ 'В этом старом рецепте число порций ещё не указано. Нажми «Редактировать рецепт» и укажи, на сколько порций записаны ингредиенты.':['This older recipe has no yield yet. Choose Edit recipe and enter how many portions the ingredients make.','Esta receta antigua aún no indica porciones. Pulsa Editar receta e indica para cuántas son los ingredientes.'],
+ 'Одна порция для каждого':['One portion per person','Una porción por persona'],
+ 'Всего в рецепте:':['Recipe yield:','Total de la receta:'],
+ 'порций ·':['portions ·','porciones ·'],
+ 'ккал на всё блюдо.':['kcal for the whole batch.','kcal para toda la receta.'],
+ 'Каждая порция — 1 /':['Each portion is 1 /','Cada porción es 1 /'],
+ 'ингредиентов. Порция не увеличивается автоматически от калоража.':['of the ingredients. Calorie changes do not automatically enlarge this portion.','de los ingredientes. La porción no aumenta automáticamente con el objetivo calórico.'],
+ 'Ингредиенты на всё блюдо':['Ingredients for the whole batch','Ingredientes para toda la receta'],
+ 'Корзина учитывает порции из меню. Остатки готового блюда автоматически не вычитаются.':['Shopping counts portions in the menu. Cooked leftovers are not automatically deducted.','La lista cuenta las porciones del menú. Las sobras cocinadas no se descuentan automáticamente.'],
+ 'Молоко:':['Milk:','Leche:'],
+ 'Выбрать на каждый день':['Choose for every day','Elegir para cada día'],
+ 'Напитки за день':['Daily drinks','Bebidas del día'],
+ 'Настроить напитки':['Drink settings','Ajustar bebidas'],
+ 'Напитки отключены для этого профиля.':['Drinks are disabled for this profile.','Las bebidas están desactivadas para este perfil.'],
+ 'Молоко и кофе уже включены в калории и корзину. Стартовый пример: 75 г молока на человека за чашку, два раза в день. Сахар и добавки не включены.':['Milk and coffee are already included in calories and shopping. Initial example: 75 g milk per person per cup, twice daily. Sugar and additions are not included.','La leche y el café ya están incluidos en las calorías y la compra. Ejemplo inicial: 75 g de leche por persona y taza, dos veces al día. No se incluyen azúcar ni añadidos.'],
+ 'Ежедневный кофе':['Daily coffee','Café diario'],
+ 'Настройки только для':['Settings only for','Ajustes solo para'],
+ '. Применяются ко всем дням плана.':['. Applies to every day in the plan.','. Se aplican a todos los días del plan.'],
+ 'Напиток':['Drink','Bebida'],
+ 'Чашек в день':['Cups per day','Tazas al día'],
+ 'Молоко на чашку, г':['Milk per cup, g','Leche por taza, g'],
+ 'Кофе в зёрнах на чашку, г':['Coffee beans per cup, g','Café en grano por taza, g'],
+ 'Укажи 0 чашек, чтобы отключить кофе. 150 г молока на двоих за один приём — по 75 г каждому. Две чашки в день на двоих — 300 г молока в день и 2,1 кг на неделю.':['Set 0 cups to disable coffee. 150 g milk for two at a time means 75 g each. Two cups daily per person use 300 g milk per day for two, or 2.1 kg weekly.','Indica 0 tazas para desactivar el café. 150 g de leche para dos cada vez son 75 g por persona. Dos tazas al día por persona usan 300 g al día para dos, o 2,1 kg a la semana.'],
+ 'КБЖУ молока 2% примерные: проверь свою этикетку. Количество зёрен — ориентир для корзины, зависит от настройки кофемашины.':['Milk 2% nutrition is approximate: check your label. Bean quantities are a shopping estimate and depend on your coffee-machine settings.','Los valores de la leche al 2 % son aproximados: consulta tu etiqueta. Los granos son una estimación para la compra y dependen de la cafetera.'],
+ 'На одну чашку':['Per cup','Por taza'],
+ 'В составе указан готовый эспрессо. Для корзины используется масса зёрен из личных настроек; вода не добавляется.':['Ingredients show brewed espresso. Shopping uses the bean weight in your personal settings; water is not added.','Los ingredientes indican expreso preparado. La compra usa los gramos de café de tus ajustes; no se añade agua.'],
+ 'Напитки обновлены':['Drinks updated','Bebidas actualizadas'],
+ 'Напитки:':['Drinks:','Bebidas:']
+});
+Object.assign(translations,{
+ 'Укажи название продукта и все значения КБЖУ на 100 г. Испанское название необязательно.':['Enter the product name and all nutrition values per 100 g. The Spanish name is optional.','Indica el nombre y todos los valores por 100 g. El nombre en español es opcional.'],
+ 'Встроенные блюда подстраиваются под цель калорий. Свои рецепты с числом порций сохраняют одну порцию на человека.':['Built-in meals adapt to the calorie target. Your recipes with a declared yield keep one portion per person.','Los platos incluidos se adaptan al objetivo calórico. Las recetas propias con porciones mantienen una porción por persona.'],
+ 'Встроенные блюда подстраиваются под дневную цель. У своих рецептов с числом порций — одна порция на человека, у напитков — личные количества.':['Built-in meals adapt to the daily target. Your recipes with a yield use one portion per person; drinks use personal quantities.','Los platos incluidos se adaptan al objetivo diario. Las recetas propias con porciones usan una por persona; las bebidas, cantidades personales.']
+});
+Object.assign(translations,{
+ 'Порции в каталоге соответствуют выбранной дате.':['Catalogue portions match the selected date.','Las porciones del catálogo corresponden a la fecha elegida.']
+});
+Object.assign(translations,{
+ 'КБЖУ приблизительные — конкретная упаковка может отличаться. Отметка съеденного сохраняет снимок личной порции.':['Nutrition is approximate and may differ from your pack. Logging saves a snapshot of your personal portion.','Los valores son aproximados y pueden diferir del envase. El registro guarda una copia de la porción personal.']
+});
+Object.assign(translations,{'Порций в рецепте:':['Recipe portions:','Porciones de la receta:']});
