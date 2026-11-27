@@ -1,5 +1,5 @@
-import {translateText,normalizeSearch} from './i18n.js';
-import {foods,recipes,spanishFoods,mealPhotos} from './data.js';
+import {translateText,normalizeSearch} from './i18n.js?v=2ef6e8d60c2d';
+import {foods,recipes,spanishFoods,mealPhotos} from './data.js?v=2ef6e8d60c2d';
 export const foodsFor=state=>({...foods,...Object.fromEntries(Object.entries(state?.customFoods||{}).map(([id,v])=>[id,v.food]))});
 export const spanishFor=(state,id)=>state?.customFoods?.[id]?.spanish||spanishFoods[id]||'';
 export const recipesFor=state=>[...recipes,...(state?.customRecipes||[])];

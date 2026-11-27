@@ -1,6 +1,6 @@
-import {translateText,normalizeSearch,recipeSearchText,supportedLanguages} from './i18n.js';
-import {foods,recipes,weekPattern,spanishFoods,portionGroups} from './data.js';
-import {foodsFor,spanishFor,recipesFor,validateCustomCatalog} from './custom-recipes.js';
+import {translateText,normalizeSearch,recipeSearchText,supportedLanguages} from './i18n.js?v=2ef6e8d60c2d';
+import {foods,recipes,weekPattern,spanishFoods,portionGroups} from './data.js?v=2ef6e8d60c2d';
+import {foodsFor,spanishFor,recipesFor,validateCustomCatalog} from './custom-recipes.js?v=2ef6e8d60c2d';
 export const localDate = (d=new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 export const parseDate = key => new Date(`${key}T12:00:00`);
 export const addDays=(key,n)=>{const d=parseDate(key);d.setDate(d.getDate()+n);return localDate(d)};

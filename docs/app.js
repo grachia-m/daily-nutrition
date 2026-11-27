@@ -1,9 +1,9 @@
-import {t,html,getLanguage,setLanguage,locale,languageSelect,syncLanguageControls,captureStaticCopy,normalizeSearch,recipeSearchText} from './i18n.js';
-import {foods,recipes,slots,times,spanishFoods,shoppingHints,mealPhotos,portionGroups,productSources} from './data.js';
-import {localDate,parseDate,addDays,weekday,weekStart,dateRange,round,nutrition,sumNutrition,isTraining,dayTarget,planDay,basket,basketKey,resizeWeight,defaultState,activeProfile,shoppingProfiles,householdTarget,householdRecipe,portionForRecipe,estimateCalories,makeProfile,migrateState,validateState,recipeAmounts,setRecipeAmounts,searchReplacements,setMeal,removeProfile,restoreProfile} from './engine.js';
-import {foodsFor,spanishFor,recipesFor,parseIngredientText,recipeMacros,createCustomRecipe} from './custom-recipes.js';
-import {startAccountController} from './session.js';
-import {draftRecipeWithAI} from './recipe-ai.js';
+import {t,html,getLanguage,setLanguage,locale,languageSelect,syncLanguageControls,captureStaticCopy,normalizeSearch,recipeSearchText} from './i18n.js?v=2ef6e8d60c2d';
+import {foods,recipes,slots,times,spanishFoods,shoppingHints,mealPhotos,portionGroups,productSources} from './data.js?v=2ef6e8d60c2d';
+import {localDate,parseDate,addDays,weekday,weekStart,dateRange,round,nutrition,sumNutrition,isTraining,dayTarget,planDay,basket,basketKey,resizeWeight,defaultState,activeProfile,shoppingProfiles,householdTarget,householdRecipe,portionForRecipe,estimateCalories,makeProfile,migrateState,validateState,recipeAmounts,setRecipeAmounts,searchReplacements,setMeal,removeProfile,restoreProfile} from './engine.js?v=2ef6e8d60c2d';
+import {foodsFor,spanishFor,recipesFor,parseIngredientText,recipeMacros,createCustomRecipe} from './custom-recipes.js?v=2ef6e8d60c2d';
+import {startAccountController} from './session.js?v=2ef6e8d60c2d';
+import {draftRecipeWithAI} from './recipe-ai.js?v=2ef6e8d60c2d';
 const icons={
  leaf:'<path d="M5 19C5 8 10 4 20 4c0 10-4 15-15 15Z"/><path d="m3 21 10-10"/>',
  day:'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 9h8M8 13h5M8 17h3"/>',

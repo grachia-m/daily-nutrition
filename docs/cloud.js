@@ -1,5 +1,5 @@
-import {t,html,getLanguage} from './i18n.js';
-import {supabaseConfig} from './config.js';
+import {t,html,getLanguage} from './i18n.js?v=2ef6e8d60c2d';
+import {supabaseConfig} from './config.js?v=2ef6e8d60c2d';
 export function authErrorMessage(error){
  const text=String(error?.message||'');
  if(/invalid login credentials/i.test(text))return t('Неверный email или пароль.');
